@@ -19,7 +19,7 @@ def onnx_generate(input, onnx_model, tokenizer):
 
 if __name__ == '__main__':
     args = sys.argv
-    model_id = "t5-small"
+    model_id = "google/flan-t5-small" # t5-small | t5-large | google/flan-t5-small
     output_dir = "./models"
     quantized = True
     test_input = "translate English to French: The universe is a dark forest."

@@ -6,8 +6,12 @@ class AutoTokenizer {
         const modelIdParts = modelId.split('/');
         const modelName = modelIdParts[modelIdParts.length - 1];
         const url = `${modelsPath}/${modelName}-tokenizer.json`;
+        console.log(`AutoTokenizer url:${url}`);
         const response = await fetch(url);
-        const tokenizer = Tokenizer.fromConfig(await response.json());
+        const config = await response.json();
+        console.log(config);
+        const tokenizer = Tokenizer.fromConfig(config);
+        console.log(tokenizer)
         return tokenizer;
     }
 }
@@ -123,7 +127,7 @@ class CharTrie {
             let child = node.children.get(ch);
             if (child === undefined) {
                 child = CharTrieNode.default();
-                node.children.set(ch,  child);
+                node.children.set(ch, child);
             }
             node = child;
         }
@@ -256,15 +260,23 @@ class TokenLatticeNode {
 
 class TokenProcessor {
     static fromConfig(config) {
+        console.log(`TokenProcessor type:${config.type}`,config);
         switch (config.type) {
             case "Metaspace":
                 return new MetaspaceTokenProcessor(config.add_prefix_space, config.replacement, config.str_rep);
             case "Precompiled":
                 return new PrecompiledTokenProcessor(config.precompiled_charsmap);
             case 'Sequence':
-                return new SequenceTokenProcessor(config.pretokenizers.map(x => TokenProcessor.fromConfig(x)));
+                if (config.pretokenizers) {
+                    return new SequenceTokenProcessor(config.pretokenizers.map(x => TokenProcessor.fromConfig(x)));
+                }
+                else if (config.normalizers) {
+                    return new PrecompiledTokenProcessor(config.normalizers.map(x => TokenProcessor.fromConfig(x)));
+                }
             case "WhitespaceSplit":
                 return new WhitespaceSplitTokenProcessor();
+            case "Replace":
+                return new ReplaceTokenProcessor(config.pattern, config.content);
             default:
                 throw new Error('Unknown token processor type: ' + config.type);
         }
@@ -309,6 +321,16 @@ class PrecompiledTokenProcessor extends TokenProcessor {
     }
     normalize(text) {
         return text;
+    }
+}
+class ReplaceTokenProcessor extends TokenProcessor {
+    constructor(pattern, content) {
+        super();
+        this.pattern = pattern;
+        this.content = content;
+    }
+    normalize(text) {
+        return text.replace(this.pattern.Regex, this.content);
     }
 }
 class SequenceTokenProcessor extends TokenProcessor {

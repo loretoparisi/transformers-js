@@ -160,7 +160,7 @@ class T5ForConditionalGeneration extends AutoModelForSeq2SeqLM {
             const encoderResults = await this.encoderSession.run(encoderFeeds);
             const encoderHiddenStates = encoderResults.hidden_states;
             encoderOutputs = encoderHiddenStates;
-            // console.log("Encoding done.", encoderOutputs);
+            console.log("Encoding done.", encoderOutputs);
         }
 
         const decoderInputIdsTensor = new ort.Tensor("int64", new BigInt64Array(decoderInputIds.map(x => BigInt(x))), [1, decoderInputIds.length]);
@@ -177,7 +177,7 @@ class T5ForConditionalGeneration extends AutoModelForSeq2SeqLM {
             const initDecoderResults = await this.initDecoderSession.run(decoderFeeds);
             logits = initDecoderResults.logits;
             pastKeyValues = this.getPastKeyValues(this.initDecoderSession.outputNames.slice(1), initDecoderResults);
-            // console.log("Init Decoding done.", logits, pastKeyValues);
+            console.log("Init Decoding done.", logits, pastKeyValues);
         }
         else {
             // console.log("Decoding...");

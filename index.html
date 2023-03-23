@@ -1,4 +1,5 @@
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>transformers-js</title>
@@ -202,7 +203,7 @@
             right: 0;
             border: none;
             background-color: transparent;
-            color:#334;
+            color: #334;
             width: 2em;
             height: 2em;
             font-size: 40px;
@@ -231,6 +232,7 @@
                             <select id="inputLang" name="inputLang" class="input" onchange="onLangSelected(event)">
                                 <!-- <option value="Akkadian">Translate from Akkadian</option> -->
                                 <option value="English" selected>Translate from English</option>
+                                <option value="Italian" selected>Translate from Italian</option>
                                 <!-- <option value="French">Translate from French</option>
                                 <option value="German">Translate from German</option>
                                 <option value="Romanian">Translate from Romanian</option> -->
@@ -247,7 +249,8 @@
                         <p>
                             <select id="outputLang" name="outputLang" class="output" onchange="onLangSelected(event)">
                                 <!-- <option value="Akkadian">Translate to Akkadian</option> -->
-                                <!-- <option value="English">Translate to English</option> -->
+                                <option value="English">Translate to Italian</option>
+                                <option value="Italian">Translate to English</option>
                                 <option value="French" selected>Translate to French</option>
                                 <option value="German">Translate to German</option>
                                 <option value="Romanian">Translate to Romanian</option>
@@ -260,7 +263,8 @@
                 </div>
                 <p style="text-align:center;">This translator uses the
                     <a id="modellink" href="https://huggingface.co/t5-base">t5-base</a>
-                    neural network.</p>
+                    neural network.
+                </p>
             </form>
         </section>
         <section style="text-align: center;">
@@ -282,8 +286,24 @@
         const $outputLang = document.getElementById("outputLang");
         const $modellink = document.getElementById("modellink");
 
-        const modelId = "t5-small";
+        const getQueryParams = function (qs) {
+            qs = qs.split("+").join(" ");
 
+            var params = {},
+                tokens,
+                re = /[?&]?([^=]+)=([^&]*)/g;
+
+            while (tokens = re.exec(qs)) {
+                params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+            }
+
+            return params;
+        };
+
+        const queryParams = getQueryParams(document.location.search);
+        const modelId = queryParams.model_id || 'google/flan-t5-small' //'t5-small';
+        console.log(modelId);
+        
         const generationOptions = {
             "maxLength": 50,
             "topK": 0,
@@ -335,6 +355,7 @@
                 await delay(33); // Give the UI a chance to update.
                 const input = getFullInput();
                 const inputTokenIds = tokenizer.encode(input);
+                console.log(`input:${input} ids:${inputTokenIds}`);
                 $inputDebug.innerText = inputTokenIds.join(" ");
                 async function showOutput(outputTokenIds, forInputIds) {
                     const newInputIds = tokenizer.encode(getFullInput());
@@ -353,6 +374,7 @@
                     return inputSame;
                 }
                 const finalOutputTokenIds = await model.generate(inputTokenIds, generationOptions, showOutput);
+                console.log(`out ids:${finalOutputTokenIds}`);
                 $status.innerText = "Ready";
             }
             else {
